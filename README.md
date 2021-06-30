@@ -40,7 +40,7 @@ But that's it for now. Thank you.
 1.) admin@user.com / admin 
 2.) guest@user.com / guest  
 
-- I have setup a 10 records for the demo meetings.
+- I have setup a 3 records for the demo meetings.
 
 
 
