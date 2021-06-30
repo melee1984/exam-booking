@@ -14,6 +14,12 @@ PHP 7.2.32
 Pagination: 
 https://github.com/gilbitron/laravel-vue-pagination
 
+## Functions 
+
+1.) Admin has the previlage to manage the meetings 
+2.) Add/EDIT/Delete New Meetings  
+3.) Guest only has a view listing  
+
 
 ## Things I did and I wanted to do if more time
 
