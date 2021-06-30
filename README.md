@@ -28,10 +28,18 @@ https://github.com/gilbitron/laravel-vue-pagination
 
 ## To Install 
 
-
 - Download the files from the Github and setup the the database from the .env file
-- and then execute sh install.sh to setup and run seeders 
-- or you can also execute php artisan migrate:refresh --seed 
+- and then execute sh <b>install.sh</b> to setup and run seeders 
+- or you can also execute <b>php artisan migrate:refresh --seed</b> 
+
+- Once you execute the migration the you can addess the login using the user below. 
+
+1.) admin@user.com / admin
+2.) guest@user.com / guest  
+
+- I have setup a 10 records for the demo meetings.
+
+
 
 
 

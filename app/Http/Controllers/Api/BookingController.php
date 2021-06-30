@@ -16,12 +16,35 @@ class BookingController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {	
     	$data = array();	
 
-    	$bookings = Booking::availbleMeetings()
-    					->paginate(15);
+        $sortField = $request->input('sort_field');
+
+        if (!in_array($sortField, ['meeting_room_name', 'user_id', 'schedule_at'])) {
+            $sortField = 'schedule_at';
+        }
+
+        $sortDirection = $request->input('sort_direction');
+        if (!in_array($sortDirection, ['asc', 'desc'])) {
+            $sortDirection = 'desc';
+        }
+
+        $search = $request->input('s');
+
+        if ($search!="") {
+            $bookings = Booking::availbleMeetings()
+                        ->where('meeting_room_name','like', '%'.$search.'%')
+                        ->orWhere('schedule_at','like', '%'.$search.'%')
+                        ->orderBy($sortField, $sortDirection)
+                        ->paginate(5);    
+        }
+        else {
+            $bookings = Booking::availbleMeetings()
+                    ->orderBy($sortField, $sortDirection)
+                    ->paginate(5);
+        }
 
         foreach ($bookings as $booking) {
 
@@ -41,43 +64,14 @@ class BookingController extends Controller
 		// We call also create a logic to filter 
 		// available timings compares 
 		// to the currenct record 
-		$timings = Booking::getTimings();
+		// $timings = Booking::getTimings();
 		// 
 		$data['bookings'] = $bookings;
-		$data['timings'] = $timings;
+		// $data['timings'] = $timings;
 
 	  	return response()->json($data, 200);
     }
 
-    /**
-     * Fetch user bookings only
-     * @return [type] [description]
-     */
-    public function fetchmyrecord()
-    {   
-        $data = array();    
-
-        $bookings = Booking::filterByUser()
-                                ->paginate(15);
-                        
-        foreach ($bookings as $booking) {
-
-            // setting up the name to display on the page
-            $booking->name = $booking->user->name;
-            $booking->schedule_date = $booking->schedule_at->format('Y-m-d'); // we can format whatever display we want 
-            $booking->schedule_time_display = $booking->from_to->format('g:i A') . " - " . $booking->until_to->format('g:i A');
-            $booking->schedule_time = $booking->from_to->format('g:i A');
-
-            // Just making user that I am not getting 
-            // all the information related to the user 
-            // include some important record
-            unset($booking->user);
-        }
-
-       $data['bookings'] = $bookings;
-
-        return response()->json($data, 200);
-    }
     /**
      * Store new meeting entry.
      *

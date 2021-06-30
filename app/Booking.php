@@ -45,28 +45,10 @@ class Booking extends Model
 	public static function scopeAvailbleMeetings($query) 
     {      
         $date = now();
-        return  $query->whereDate('schedule_at', '>=', date('Y-m-d', strtotime($date)))
-    					->orderBy('schedule_at', 'asc')
-						->orderBy('from_to', 'asc');
+        return  $query->whereDate('schedule_at', '>=', date('Y-m-d', strtotime($date)));
+    					
     }
-    /**
-     * [scopeAvailbleMeetings description]
-     * @param  [type] $query [description]
-     * @return [type]        [description]
-     */
-    public static function scopeFilterByUser($query) 
-    {      
-        $date = now();
-
-        return  $query->whereUserId(Auth::User()->id)
-                        ->whereDate('schedule_at', '>=', date('Y-m-d', strtotime($date)))
-                        ->orderBy('schedule_at', 'asc')
-                        ->orderBy('from_to', 'asc');
-    }
-
-    public function formatDisplay() {
-
-    }
+    
 
 	/**
 	 * Just filtering the time available on that day. 

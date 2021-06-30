@@ -15,17 +15,15 @@
           <p>
             <a href="javascript:void(0)" v-on:click="manageAdd()" class="btn btn-primary" v-if="manage">New Meeting</a>
           </p>
-
-          <!-- <div class="alert alert-danger" role="alert" v-if="displayError">
+         <div class="alert alert-danger" role="alert" v-if="displayError">
             {{ message }}
-          </div> -->
-
-         <div class="row" v-if="!manage">
-            <div class="form-group col-10">
-              <input type="text" class="form-control" placeholder="Search meeting room or user" v-model="searchText" v-on:change="searchFilter()">
+          </div>
+         <div class="row" v-if="!manage" >
+            <div class="form-group col-10" v-if="permission=='1'">
+              <input type="text" class="form-control" placeholder="Search meeting room or user" v-model="search">
             </div>
-             <div class="form-group col-2">
-              <a href="javascript:void(0)" v-on:click="fetchMyBookings" class="btn btn-primary">My Bookings</a>
+             <div class="form-group col-2" v-if="permission=='1'">
+              <a href="javascript:void(0)" v-on:click="fetchMyBookings" v-bind:class="{ 'btn btn-primary': onlyMine, 'btn btn-secondary': !onlyMine }">My Bookings</a>
             </div>
          </div>
 
@@ -33,26 +31,53 @@
             <thead>
                 <tr>
                     <th v-if="manage"></th>
-                    <th>Meeting Room</th>
-                    <th>Created by</th>
-                    <th>Date Schedule</th>
+                    <th>
+                        <a href="javascript:void(0)" v-on:click="sort('meeting_room_name')">
+                          Meeting Room
+                        </a>
+                        <span v-if="sortField =='meeting_room_name' && sortDirection == 'asc'">
+                            <i class="fas fa-angle-up"></i>
+                        </span>
+                        <span v-if="sortField =='meeting_room_name' && sortDirection == 'desc'">
+                          <i class="fas fa-angle-down"></i>
+                        </span>
+                    </th>
+                    <th>
+                      <a href="javascript:void(0)" v-on:click="sort('schedule_at')">
+                        Date Schedule
+                      </a>
+                       <span v-if="sortField =='schedule_at' && sortDirection == 'asc'">
+                           <i class="fas fa-angle-up"></i>
+                       </span>
+                        <span v-if="sortField =='schedule_at' && sortDirection == 'desc'">
+                         <i class="fas fa-angle-down"></i>
+                       </span>
+                    </th>
+                    <th>Created By</th>
                     <th>Duration</th>
                     <th>Time</th>
                     <th v-if="manage"></th>
                 </tr>
             </thead>
             <tbody>
+                <tr colspan="7" v-if="bookings.data.length<=0">
+                  <td>No record found</td>
+                </tr>
                 <tr v-for="booking in bookings.data">
                   <td v-if="manage">
-                    <a href="javascript:void(0)" v-on:click="editData(booking)">EDIT</a>
+                    <a href="javascript:void(0)" v-on:click="editData(booking)">
+                       <i class=" fas fa-pencil-alt"></i>
+                    </a>
                   </td>
                     <td><b>{{ booking.meeting_room_name }}</b></td>
-                    <td>{{ booking.name }}</td>
                     <td>{{ booking.schedule_date }}</td>
+                     <td>{{ booking.name }}</td>
                     <td>{{ booking.duration }}</td>
                     <td>{{ booking.schedule_time_display }}</td>
                      <td v-if="manage" class="text-right">
-                        <a href="javascript:void(0)" class="text-danger" v-on:click="deleteData(booking.id)">DELETE</a>
+                        <a href="javascript:void(0)" class="text-danger" v-on:click="deleteData(booking.id)">
+                          <i class="far fa-trash-alt"></i>
+                        </a>
                      </td>
                 </tr>
             </tbody>
@@ -65,7 +90,7 @@
                 </tr>
             </tfoot>
           </table>
-
+          <!-- This is for the Form --> 
           <div  v-if="action=='add'||action=='edit'">
             <div class="form-group">
               <label for="exampleInputEmail1">Meeting Room</label>
@@ -114,7 +139,10 @@
           action: 'view',
           manage: false,
           displayError: false,
-          searchText: "",
+          search: "",
+          sortField: "meeting_room_name",
+          sortDirection: "desc",
+          onlyMine: 0,
         }
       },
       computed: {
@@ -124,23 +152,45 @@
       },
       mounted() {
         this.fetchData();
+
+      },
+      watch: {
+        search(val, old) {
+          if (val.length >= 1 || old.length >=1) {
+            this.fetchData();
+          }
+        }
       },
       methods: {
+        sort: function(field) {
+          if (this.sortField == field) {
+            this.sortDirection = this.sortDirection == 'asc' ? 'desc' : 'asc';
+          }
+          else {
+            this.sortField = field;
+            this.sortDirection = 'asc';
+          }
+          this.fetchData();
+        },  
         fetchData: function(page = 1) {
           var self = this;
-          axios.get('/api/bookings?api_token='+ API_TOKEN+"&page="+page).then(function (response) {
+          axios.get('/api/bookings?api_token='+ API_TOKEN
+              +"&page="+page
+              + '&sort_field='+this.sortField
+              + '&sort_direction='+this.sortDirection
+              + '&s='+this.search
+              + '&m='+this.onlyMine
+              )
+          .then(function (response) {
             self.bookings = response.data.bookings;
           }).catch(function (error) {
               console.log(error);
           });
+
         },
-        fetchMyBookings: function(page = 1) {
-          var self = this;
-          axios.get('/api/display/mine?api_token='+ API_TOKEN+"&page="+page).then(function (response) {
-            self.bookings = response.data.bookings;
-          }).catch(function (error) {
-              console.log(error);
-          });
+        fetchMyBookings: function() {
+          this.onlyMine = this.onlyMine==0? 1 : 0;
+          this.fetchData();
         },
         insertData: function () {
           var self = this;

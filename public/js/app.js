@@ -2008,6 +2008,31 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
@@ -2022,7 +2047,10 @@ __webpack_require__.r(__webpack_exports__);
       action: 'view',
       manage: false,
       displayError: false,
-      searchText: ""
+      search: "",
+      sortField: "meeting_room_name",
+      sortDirection: "desc",
+      onlyMine: 0
     };
   },
   computed: {
@@ -2033,24 +2061,36 @@ __webpack_require__.r(__webpack_exports__);
   mounted: function mounted() {
     this.fetchData();
   },
+  watch: {
+    search: function search(val, old) {
+      if (val.length >= 1 || old.length >= 1) {
+        this.fetchData();
+      }
+    }
+  },
   methods: {
+    sort: function sort(field) {
+      if (this.sortField == field) {
+        this.sortDirection = this.sortDirection == 'asc' ? 'desc' : 'asc';
+      } else {
+        this.sortField = field;
+        this.sortDirection = 'asc';
+      }
+
+      this.fetchData();
+    },
     fetchData: function fetchData() {
       var page = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
       var self = this;
-      axios.get('/api/bookings?api_token=' + API_TOKEN + "&page=" + page).then(function (response) {
+      axios.get('/api/bookings?api_token=' + API_TOKEN + "&page=" + page + '&sort_field=' + this.sortField + '&sort_direction=' + this.sortDirection + '&s=' + this.search + '&m=' + this.onlyMine).then(function (response) {
         self.bookings = response.data.bookings;
       })["catch"](function (error) {
         console.log(error);
       });
     },
     fetchMyBookings: function fetchMyBookings() {
-      var page = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
-      var self = this;
-      axios.get('/api/display/mine?api_token=' + API_TOKEN + "&page=" + page).then(function (response) {
-        self.bookings = response.data.bookings;
-      })["catch"](function (error) {
-        console.log(error);
-      });
+      this.onlyMine = this.onlyMine == 0 ? 1 : 0;
+      this.fetchData();
     },
     insertData: function insertData() {
       var self = this;
@@ -38461,49 +38501,61 @@ var render = function() {
           : _vm._e()
       ]),
       _vm._v(" "),
+      _vm.displayError
+        ? _c(
+            "div",
+            { staticClass: "alert alert-danger", attrs: { role: "alert" } },
+            [_vm._v("\n        " + _vm._s(_vm.message) + "\n      ")]
+          )
+        : _vm._e(),
+      _vm._v(" "),
       !_vm.manage
         ? _c("div", { staticClass: "row" }, [
-            _c("div", { staticClass: "form-group col-10" }, [
-              _c("input", {
-                directives: [
-                  {
-                    name: "model",
-                    rawName: "v-model",
-                    value: _vm.searchText,
-                    expression: "searchText"
-                  }
-                ],
-                staticClass: "form-control",
-                attrs: {
-                  type: "text",
-                  placeholder: "Search meeting room or user"
-                },
-                domProps: { value: _vm.searchText },
-                on: {
-                  change: function($event) {
-                    return _vm.searchFilter()
-                  },
-                  input: function($event) {
-                    if ($event.target.composing) {
-                      return
+            _vm.permission == "1"
+              ? _c("div", { staticClass: "form-group col-10" }, [
+                  _c("input", {
+                    directives: [
+                      {
+                        name: "model",
+                        rawName: "v-model",
+                        value: _vm.search,
+                        expression: "search"
+                      }
+                    ],
+                    staticClass: "form-control",
+                    attrs: {
+                      type: "text",
+                      placeholder: "Search meeting room or user"
+                    },
+                    domProps: { value: _vm.search },
+                    on: {
+                      input: function($event) {
+                        if ($event.target.composing) {
+                          return
+                        }
+                        _vm.search = $event.target.value
+                      }
                     }
-                    _vm.searchText = $event.target.value
-                  }
-                }
-              })
-            ]),
+                  })
+                ])
+              : _vm._e(),
             _vm._v(" "),
-            _c("div", { staticClass: "form-group col-2" }, [
-              _c(
-                "a",
-                {
-                  staticClass: "btn btn-primary",
-                  attrs: { href: "javascript:void(0)" },
-                  on: { click: _vm.fetchMyBookings }
-                },
-                [_vm._v("My Bookings")]
-              )
-            ])
+            _vm.permission == "1"
+              ? _c("div", { staticClass: "form-group col-2" }, [
+                  _c(
+                    "a",
+                    {
+                      class: {
+                        "btn btn-primary": _vm.onlyMine,
+                        "btn btn-secondary": !_vm.onlyMine
+                      },
+                      attrs: { href: "javascript:void(0)" },
+                      on: { click: _vm.fetchMyBookings }
+                    },
+                    [_vm._v("My Bookings")]
+                  )
+                ])
+              : _vm._e()
           ])
         : _vm._e(),
       _vm._v(" "),
@@ -38513,11 +38565,67 @@ var render = function() {
               _c("tr", [
                 _vm.manage ? _c("th") : _vm._e(),
                 _vm._v(" "),
-                _c("th", [_vm._v("Meeting Room")]),
+                _c("th", [
+                  _c(
+                    "a",
+                    {
+                      attrs: { href: "javascript:void(0)" },
+                      on: {
+                        click: function($event) {
+                          return _vm.sort("meeting_room_name")
+                        }
+                      }
+                    },
+                    [
+                      _vm._v(
+                        "\n                      Meeting Room\n                    "
+                      )
+                    ]
+                  ),
+                  _vm._v(" "),
+                  _vm.sortField == "meeting_room_name" &&
+                  _vm.sortDirection == "asc"
+                    ? _c("span", [_c("i", { staticClass: "fas fa-angle-up" })])
+                    : _vm._e(),
+                  _vm._v(" "),
+                  _vm.sortField == "meeting_room_name" &&
+                  _vm.sortDirection == "desc"
+                    ? _c("span", [
+                        _c("i", { staticClass: "fas fa-angle-down" })
+                      ])
+                    : _vm._e()
+                ]),
                 _vm._v(" "),
-                _c("th", [_vm._v("Created by")]),
+                _c("th", [
+                  _c(
+                    "a",
+                    {
+                      attrs: { href: "javascript:void(0)" },
+                      on: {
+                        click: function($event) {
+                          return _vm.sort("schedule_at")
+                        }
+                      }
+                    },
+                    [
+                      _vm._v(
+                        "\n                    Date Schedule\n                  "
+                      )
+                    ]
+                  ),
+                  _vm._v(" "),
+                  _vm.sortField == "schedule_at" && _vm.sortDirection == "asc"
+                    ? _c("span", [_c("i", { staticClass: "fas fa-angle-up" })])
+                    : _vm._e(),
+                  _vm._v(" "),
+                  _vm.sortField == "schedule_at" && _vm.sortDirection == "desc"
+                    ? _c("span", [
+                        _c("i", { staticClass: "fas fa-angle-down" })
+                      ])
+                    : _vm._e()
+                ]),
                 _vm._v(" "),
-                _c("th", [_vm._v("Date Schedule")]),
+                _c("th", [_vm._v("Created By")]),
                 _vm._v(" "),
                 _c("th", [_vm._v("Duration")]),
                 _vm._v(" "),
@@ -38529,57 +38637,65 @@ var render = function() {
             _vm._v(" "),
             _c(
               "tbody",
-              _vm._l(_vm.bookings.data, function(booking) {
-                return _c("tr", [
-                  _vm.manage
-                    ? _c("td", [
-                        _c(
-                          "a",
-                          {
-                            attrs: { href: "javascript:void(0)" },
-                            on: {
-                              click: function($event) {
-                                return _vm.editData(booking)
+              [
+                _vm.bookings.data.length <= 0
+                  ? _c("tr", { attrs: { colspan: "7" } }, [
+                      _c("td", [_vm._v("No record found")])
+                    ])
+                  : _vm._e(),
+                _vm._v(" "),
+                _vm._l(_vm.bookings.data, function(booking) {
+                  return _c("tr", [
+                    _vm.manage
+                      ? _c("td", [
+                          _c(
+                            "a",
+                            {
+                              attrs: { href: "javascript:void(0)" },
+                              on: {
+                                click: function($event) {
+                                  return _vm.editData(booking)
+                                }
                               }
-                            }
-                          },
-                          [_vm._v("EDIT")]
-                        )
-                      ])
-                    : _vm._e(),
-                  _vm._v(" "),
-                  _c("td", [
-                    _c("b", [_vm._v(_vm._s(booking.meeting_room_name))])
-                  ]),
-                  _vm._v(" "),
-                  _c("td", [_vm._v(_vm._s(booking.name))]),
-                  _vm._v(" "),
-                  _c("td", [_vm._v(_vm._s(booking.schedule_date))]),
-                  _vm._v(" "),
-                  _c("td", [_vm._v(_vm._s(booking.duration))]),
-                  _vm._v(" "),
-                  _c("td", [_vm._v(_vm._s(booking.schedule_time_display))]),
-                  _vm._v(" "),
-                  _vm.manage
-                    ? _c("td", { staticClass: "text-right" }, [
-                        _c(
-                          "a",
-                          {
-                            staticClass: "text-danger",
-                            attrs: { href: "javascript:void(0)" },
-                            on: {
-                              click: function($event) {
-                                return _vm.deleteData(booking.id)
+                            },
+                            [_c("i", { staticClass: " fas fa-pencil-alt" })]
+                          )
+                        ])
+                      : _vm._e(),
+                    _vm._v(" "),
+                    _c("td", [
+                      _c("b", [_vm._v(_vm._s(booking.meeting_room_name))])
+                    ]),
+                    _vm._v(" "),
+                    _c("td", [_vm._v(_vm._s(booking.schedule_date))]),
+                    _vm._v(" "),
+                    _c("td", [_vm._v(_vm._s(booking.name))]),
+                    _vm._v(" "),
+                    _c("td", [_vm._v(_vm._s(booking.duration))]),
+                    _vm._v(" "),
+                    _c("td", [_vm._v(_vm._s(booking.schedule_time_display))]),
+                    _vm._v(" "),
+                    _vm.manage
+                      ? _c("td", { staticClass: "text-right" }, [
+                          _c(
+                            "a",
+                            {
+                              staticClass: "text-danger",
+                              attrs: { href: "javascript:void(0)" },
+                              on: {
+                                click: function($event) {
+                                  return _vm.deleteData(booking.id)
+                                }
                               }
-                            }
-                          },
-                          [_vm._v("DELETE")]
-                        )
-                      ])
-                    : _vm._e()
-                ])
-              }),
-              0
+                            },
+                            [_c("i", { staticClass: "far fa-trash-alt" })]
+                          )
+                        ])
+                      : _vm._e()
+                  ])
+                })
+              ],
+              2
             ),
             _vm._v(" "),
             _c("tfoot", [
