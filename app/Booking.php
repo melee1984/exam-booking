@@ -48,14 +48,12 @@ class Booking extends Model
         return  $query->whereDate('schedule_at', '>=', date('Y-m-d', strtotime($date)));
     					
     }
-    
-
-	/**
+    /**
 	 * Just filtering the time available on that day. 
      * I need more time to explore more on the time management  comparation.
 	 * @return available time in a array 
 	 */
-	public static function getTimings($date="06/27/2021") {
+	public static function getTimings($date="06/30/2021") {
 
         if ($date == "") {
             $date = now();
@@ -72,6 +70,7 @@ class Booking extends Model
         $times_occupied = array();
 
         // get all record by date and added into array ;
+        // This will be compare to the available dates populate later on. 
         // 
         foreach($bookings as $booking) {
 
@@ -91,6 +90,7 @@ class Booking extends Model
         $data = array();
 
         // Initialize the dates to compare 
+        // and then compare if the time is a vailable otherwise set the time lock or unlock
         // 
         $begin = new DateTime("07:30");
         $end   = new DateTime("16:30");
